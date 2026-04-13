@@ -2,21 +2,9 @@ import axios from "axios"
 import { useWeatherStore } from "../store/useWeatherStore"
 import type { GeoResponse, GeoLocation, WeatherData, DailyForecast } from "../types"
 
-// Simple cache — prevents repeat API calls for 10 minutes
-const cache = new Map<string, { data: WeatherData; timestamp: number }>()
+
 const CACHE_TTL = 10 * 60 * 1000
 
-const getCached = (city: string): WeatherData | null => {
-  const entry = cache.get(city.toLowerCase())
-  if (!entry) return null
-  if (Date.now() - entry.timestamp > CACHE_TTL) {
-    cache.delete(city.toLowerCase())
-    return null
-  }
-  return entry.data
-}
-
-// Step 1 — City name → coordinates
 const searchCity = async (city: string): Promise<GeoLocation> => {
   const res = await axios.get<GeoResponse>(
     "https://geocoding-api.open-meteo.com/v1/search",
@@ -29,7 +17,6 @@ const searchCity = async (city: string): Promise<GeoLocation> => {
   return results[0]
 }
 
-// Step 2 — Coordinates → weather data
 const fetchWeatherData = async (location: GeoLocation): Promise<WeatherData> => {
   const res = await axios.get("https://api.open-meteo.com/v1/forecast", {
     params: {
@@ -67,7 +54,7 @@ const fetchWeatherData = async (location: GeoLocation): Promise<WeatherData> => 
   }
 }
 
-// The hook — what components import and use
+
 export const useWeather = () => {
   const { setWeatherData, setLoading, setError, addToHistory } = useWeatherStore()
 
@@ -75,16 +62,12 @@ export const useWeather = () => {
     const cleaned = city.trim()
     if (!cleaned) { setError("Please enter a city name"); return }
 
-    const cached = getCached(cleaned)
-    if (cached) { setWeatherData(cached); addToHistory(cleaned); return }
-
-    setLoading(true)
+      setLoading(true)
     setError(null)
 
     try {
       const location = await searchCity(cleaned)
-      const weatherData = await fetchWeatherData(location)
-      cache.set(cleaned.toLowerCase(), { data: weatherData, timestamp: Date.now() })
+      const weatherData = await fetchWeatherData(location)     
       setWeatherData(weatherData)
       addToHistory(cleaned)
     } catch (err) {

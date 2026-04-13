@@ -21,7 +21,7 @@ const SearchBar = ({ onSearch, isLoading }: Props) => {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && value.trim() && onSearch(value.trim())}
-        placeholder="Search city e.g. London, Manchester, Birmingham"
+        placeholder="Search city e.g. London"
         disabled={isLoading}
         className="flex-1 bg-gray-800 border border-gray-700
                    text-white placeholder-gray-500 rounded-lg
